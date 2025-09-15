@@ -20,5 +20,4 @@ resource "aws_subnet" "public_b" {
     Name = "public-subnet-b"
     Type = "public"
   }
-
 }
