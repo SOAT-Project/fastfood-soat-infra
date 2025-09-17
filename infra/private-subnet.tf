@@ -7,6 +7,8 @@ resource "aws_subnet" "private_a" {
   tags = {
     Name = "private-subnet-a"
     Type = "private"
+    "kubernetes.io/cluster/fastfood-eks" = "shared"
+    "kubernetes.io/role/internal-elb"    = "1"
   }
 }
 
@@ -19,5 +21,7 @@ resource "aws_subnet" "private_b" {
   tags = {
     Name = "private-subnet-b"
     Type = "private"
+    "kubernetes.io/cluster/fastfood-eks" = "shared"
+    "kubernetes.io/role/internal-elb"    = "1"
   }
 }
