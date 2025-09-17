@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fastfood-app
+  namespace: fastfood 
 spec:
   selector:
     matchLabels:
@@ -11,16 +12,6 @@ spec:
       labels:
         app: fastfood
     spec:
-      initContainers:
-      - name: wait-for-postgres
-        image: postgres:17-alpine
-        command: ['sh', '-c', '
-          echo "Aguardando o postgres ficar pronto...";
-          until pg_isready -h postgres -p 5432; do
-            echo "Ainda aguardando...";
-            sleep 2;
-          done;
-          echo "Postgres está pronto!";']
       containers:
         - name: fastfood
           image: srteixeiradias/fastfood:latest
