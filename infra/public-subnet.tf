@@ -7,6 +7,8 @@ resource "aws_subnet" "public_a" {
   tags = {
     Name = "public-subnet-a"
     Type = "public"
+    "kubernetes.io/cluster/fastfood-eks" = "shared"
+    "kubernetes.io/role/elb"             = "1"
   }
 }
 
@@ -19,6 +21,7 @@ resource "aws_subnet" "public_b" {
   tags = {
     Name = "public-subnet-b"
     Type = "public"
+    "kubernetes.io/cluster/fastfood-eks" = "shared"
+    "kubernetes.io/role/elb"             = "1"
   }
-
 }

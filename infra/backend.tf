@@ -1,7 +1,19 @@
 terraform {
-  backend "s3" {
-    bucket = "bucket-for-backend-tf-fastfood-soat"
-    key    = "dev/terraform/terraform.tfstate"
-    region = "sa-east-1"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
   }
+
 }
+
+
+
+
+
+
+
+
+

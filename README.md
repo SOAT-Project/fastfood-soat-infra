@@ -1,23 +1,88 @@
-# fastfood-soat-infra
-Repositório para armazenar a estrutura Kubernetes e IaC.
+# Fastfood - Infraestrutura 🍔
 
-## Inicialização do Backend
+Este repositório contém a infraestrutura necessária para rodar a aplicação **Fastfood** no **Amazon EKS**.
 
-O estado do Terraform (`tfstate`) é armazenado remotamente em um bucket S3.
+---
 
-> ⚠️ O bucket **não deve ser criado pelo Terraform**, pois o backend precisa existir antes da inicialização.  
-> Portanto, crie manualmente com o comando abaixo:
+## 📂 Estrutura do projeto
+
+- **/infra** → Provisionamento da infraestrutura base com **Terraform**:
+  - VPC com subnets públicas e privadas
+  - Internet Gateway (IGW) para acesso externo
+  - NAT Gateway e route tables para comunicação das subnets privadas
+  - Cluster EKS com addons gerenciados
+
+- **/kubernetes** → Manifests Kubernetes para rodar a aplicação no cluster:
+  - Namespace
+  - Deployment
+  - Service (LoadBalancer)
+  - HPA
+
+> ⚠️ O **RDS PostgreSQL** é provisionado em outro repositório e deve estar disponível antes do deploy da aplicação.
+
+---
+
+## 🚀 Passo a passo
+
+### 1. Subir infraestrutura base
+
+No diretório `/infra`:
 
 ```bash
-aws s3api create-bucket \
-  --bucket bucket-for-backend-tf-fastfood-soat \
-  --region sa-east-1 \
-  --create-bucket-configuration LocationConstraint=sa-east-1
+cd infra
+terraform init
+terraform apply
+```
 
-Para limpar e deletar o bucket:
+Isso provisiona toda a rede (VPC, subnets, IGW, NAT, rotas) e o cluster EKS.
 
-# Apaga todos os objetos do bucket
-aws s3 rm s3://bucket-for-backend-tf-fastfood-soat --recursive
+### 2. Subir banco de dados (RDS)
 
-# Depois de vazio, apaga o bucket
-aws s3api delete-bucket --bucket bucket-for-backend-tf-fastfood-soat --region sa-east-1
+O RDS está em outro repositório. Certifique-se de:
+* Criar o banco no mesmo VPC/subnets privadas.
+* Atualizar as variáveis de conexão da aplicação.
+
+* ### 3. Configurar acesso ao EKS
+
+Após a criação do cluster, rode o comando abaixo para configurar o `kubectl`:
+
+```bash
+aws eks --region sa-east-1 update-kubeconfig --name fastfood-eks
+```
+
+
+### 4. Deploy no Kubernetes
+
+Após a infraestrutura e o RDS estarem prontos, aplicar os manifests no cluster:
+
+```bash
+cd kubernetes
+terraform init
+terraform apply
+```
+
+Isso cria o namespace, deployment, service (LoadBalancer) e o HPA.
+
+---
+
+## ✅ Resultado esperado
+
+* Aplicação **Fastfood** rodando no EKS, exposta via LoadBalancer.
+* Escalabilidade automática configurada pelo HPA.
+* Banco de dados externo no RDS integrado à aplicação.
+
+---
+
+## 🔍 Como acessar
+
+Obter o endpoint público do LoadBalancer:
+
+```bash
+kubectl get svc -n fastfood
+```
+
+E acessar o Swagger UI em:
+
+```
+http://<EXTERNAL-IP>/api/swagger-ui/index.html
+```
