@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   infra:
-    uses: ./.github/workflows/terraform.yaml
+    uses: ./.github/workflows/terraform-infra.yaml
     with:
       environment: release
       aws-assume-role-arn: "arn:aws:iam::783906943381:role/github-actions-soat-project-pipeline"

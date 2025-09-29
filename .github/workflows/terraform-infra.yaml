@@ -57,7 +57,7 @@ jobs:
             -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
       
       - name: Terraform Validate
-        run: terraform Validate
+        run: cd infra && terraform validate
 
       - name: Terraform Destroy
         if: steps.read-destroy-config.outputs.destroy == 'true'
