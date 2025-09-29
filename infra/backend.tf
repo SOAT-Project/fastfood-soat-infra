@@ -7,13 +7,7 @@ terraform {
     }
   }
 
+  backend "s3" {
+  }
+
 }
-
-
-
-
-
-
-
-
-

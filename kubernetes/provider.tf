@@ -4,11 +4,11 @@ provider "aws" {
 }
 
 data "aws_eks_cluster" "fastfood" {
-  name = "fastfood-eks"
+  name = "${var.prefix}-fastfood-eks"
 }
 
 data "aws_eks_cluster_auth" "fastfood" {
-  name = "fastfood-eks"
+  name = "${var.prefix}-fastfood-eks"
 }
 
 provider "kubernetes" {

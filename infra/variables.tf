@@ -4,6 +4,10 @@ variable "region" {
   default     = "sa-east-1"
 }
 
+variable "prefix"{
+  type = string
+}
+
 variable "vpc_cidr" {
   description = "CIDR da VPC"
   type        = string

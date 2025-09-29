@@ -5,7 +5,7 @@ resource "aws_subnet" "private_a" {
   availability_zone       = var.az_a
 
   tags = {
-    Name = "private-subnet-a"
+    Name = "${var.prefix}-private-subnet-a"
     Type = "private"
     "kubernetes.io/cluster/fastfood-eks" = "shared"
     "kubernetes.io/role/internal-elb"    = "1"
@@ -19,7 +19,7 @@ resource "aws_subnet" "private_b" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "private-subnet-b"
+    Name = "${var.prefix}-private-subnet-b"
     Type = "private"
     "kubernetes.io/cluster/fastfood-eks" = "shared"
     "kubernetes.io/role/internal-elb"    = "1"

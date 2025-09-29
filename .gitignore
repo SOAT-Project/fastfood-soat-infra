@@ -19,5 +19,4 @@ terraform.rc
 .terraform/
 
 # Sensitive files
-*.tfvars
 *.tfvars.json
