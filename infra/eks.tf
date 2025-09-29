@@ -2,7 +2,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 21.0"
 
-  name               = "fastfood-eks"
+  name               = "${var.prefix}-fastfood-eks"
   kubernetes_version = "1.33"
   enable_irsa        = true
 

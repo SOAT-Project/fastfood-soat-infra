@@ -5,7 +5,7 @@ resource "aws_subnet" "public_a" {
   availability_zone       = var.az_a
 
   tags = {
-    Name = "public-subnet-a"
+    Name = "${var.prefix}-public-subnet-a"
     Type = "public"
     "kubernetes.io/cluster/fastfood-eks" = "shared"
     "kubernetes.io/role/elb"             = "1"
@@ -19,7 +19,7 @@ resource "aws_subnet" "public_b" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet-b"
+    Name = "${var.prefix}-public-subnet-b"
     Type = "public"
     "kubernetes.io/cluster/fastfood-eks" = "shared"
     "kubernetes.io/role/elb"             = "1"

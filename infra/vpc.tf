@@ -4,6 +4,6 @@ resource "aws_vpc" "fastfood-vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "fastfood-vpc"
+    Name = "${var.prefix}-fastfood-vpc"
   }
 }
