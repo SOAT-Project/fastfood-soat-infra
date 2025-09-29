@@ -14,3 +14,7 @@ variable "rds_endpoint" {
   type        = string
   default     = "fastfood-soat-db.clm8cegucd6a.sa-east-1.rds.amazonaws.com"
 }
+
+variable "prefix"{
+  type = string
+}
