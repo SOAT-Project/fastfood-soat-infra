@@ -30,3 +30,10 @@ jobs:
       aws-lock-dynamodb-table: "soat-project-sa-east-1-terraform-lock"
     secrets:
       AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+      MP_TOKEN: ${{ secrets.MP_TOKEN }}
+      COLLECTOR_ID: ${{ secrets.COLLECTOR_ID }}
+      POS_ID: ${{ secrets.POS_ID }}
+
