@@ -1,0 +1,9 @@
+prefix = "release"
+
+db_username  = "USUARIO_BANCO"
+db_password  = "SENHA_BANCO"
+rds_endpoint = "ENDPOINT_RDS"
+
+mp_token     = "TOKEN_MERCADO_PAGO"
+collector_id = "COLLECTOR_ID_MERCADO_PAGO"
+pos_id       = "POS_ID_MERCADO_PAGO"
