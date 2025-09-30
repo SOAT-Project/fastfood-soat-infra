@@ -73,10 +73,10 @@ jobs:
 
       - name: Terraform Destroy
         if: steps.read-destroy-config.outputs.destroy == 'true'
-        id: terraform-destroy
         run: cd kubernetes &&
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform destroy \
+            -var="prefix=${{ inputs.environment }}" \
             -var="db_username=${{ secrets.DB_USERNAME }}" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
             -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" \
@@ -87,10 +87,10 @@ jobs:
 
       - name: Terraform Plan
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        id: terraform-plan
         run: cd kubernetes &&
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform plan \
+            -var="prefix=${{ inputs.environment }}" \
             -var="db_username=${{ secrets.DB_USERNAME }}" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
             -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" \
@@ -101,7 +101,6 @@ jobs:
 
       - name: Terraform Apply
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        id: terraform-apply
         run: cd kubernetes &&
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
           terraform apply "${{ inputs.environment }}.plan"
