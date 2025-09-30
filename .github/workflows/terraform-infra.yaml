@@ -6,9 +6,6 @@ on:
       environment:
         type: string
         required: true
-      aws-assume-role-arn:
-        type: string
-        required: true
       aws-statefile-s3-bucket:
         type: string
         required: true
@@ -18,6 +15,10 @@ on:
       aws-region:
         type: string
         required: true
+    secrets:
+      AWS_ASSUME_ROLE_ARN:
+        required: true
+
 
 jobs:
   terraform:
