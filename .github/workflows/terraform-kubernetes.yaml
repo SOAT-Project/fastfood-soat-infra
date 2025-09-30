@@ -56,51 +56,22 @@ jobs:
 
       - name: Read destroy configuration
         id: read-destroy-config
-        run: |
-          DESTROY="$(jq -r '.${{ inputs.environment }}' ./kubernetes/destroy_config.json)"
-          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+        run: DESTROY="$(jq -r '.${{ inputs.environment }}' ./kubernetes/destroy_config.json)" && echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       - name: Terraform Init
-        run: |
-          cd kubernetes && terraform init \
-            -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" \
-            -backend-config="key=kubernetes/${{ inputs.environment }}.tfstate" \
-            -backend-config="region=${{ inputs.aws-region }}" \
-            -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
+        run: cd kubernetes && terraform init -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" -backend-config="key=kubernetes/${{ inputs.environment }}.tfstate" -backend-config="region=${{ inputs.aws-region }}" -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"
 
       - name: Terraform Validate
         run: cd kubernetes && terraform validate
 
       - name: Terraform Destroy
         if: steps.read-destroy-config.outputs.destroy == 'true'
-        run: cd kubernetes &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform destroy \
-            -var="prefix=${{ inputs.environment }}" \
-            -var="db_username=${{ secrets.DB_USERNAME }}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" \
-            -var="mp_token=${{ secrets.MP_TOKEN }}" \
-            -var="collector_id=${{ secrets.COLLECTOR_ID }}" \
-            -var="pos_id=${{ secrets.POS_ID }}" \
-            -auto-approve
+        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform destroy -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -auto-approve
 
       - name: Terraform Plan
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        run: cd kubernetes &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform plan \
-            -var="prefix=${{ inputs.environment }}" \
-            -var="db_username=${{ secrets.DB_USERNAME }}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" \
-            -var="mp_token=${{ secrets.MP_TOKEN }}" \
-            -var="collector_id=${{ secrets.COLLECTOR_ID }}" \
-            -var="pos_id=${{ secrets.POS_ID }}" \
-            -out="${{ inputs.environment }}.plan"
+        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform plan -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        run: cd kubernetes &&
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform apply "${{ inputs.environment }}.plan"
+        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform apply "${{ inputs.environment }}.plan"
