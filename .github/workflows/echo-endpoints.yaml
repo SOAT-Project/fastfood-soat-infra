@@ -128,13 +128,29 @@ jobs:
         if: env.LB_READY == 'true'
         run: |
           echo "🔎 Verificando acessibilidade dos endpoints..."
+          echo "⏳ Aguardando LoadBalancer ficar operacional (pode levar até 3 minutos)..."
           
-          # Aguarda um pouco para o LoadBalancer estar realmente pronto
-          sleep 10
+          # Tenta por até 3 minutos com intervalos de 15 segundos
+          for i in {1..12}; do
+            sleep 15
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${{ env.LB_HOST }}/api/actuator/health 2>/dev/null || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check está respondendo! (tentativa $i)"
+              break
+            else
+              echo "⏳ Aguardando... (tentativa $i/12 - HTTP $HTTP_CODE)"
+            fi
+          done
           
-          # Testa o health check
-          if curl -s -o /dev/null -w "%{http_code}" http://${{ env.LB_HOST }}/api/actuator/health | grep -q "200"; then
-            echo "✅ Health check está respondendo!"
+          # Verifica o resultado final
+          FINAL_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${{ env.LB_HOST }}/api/actuator/health 2>/dev/null || echo "000")
+          if [ "$FINAL_CODE" = "200" ]; then
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "✅ APLICAÇÃO ESTÁ ONLINE E RESPONDENDO!"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           else
-            echo "⚠️  Health check ainda não está respondendo (pode levar alguns minutos)"
+            echo ""
+            echo "⚠️  Aplicação ainda não está respondendo. Aguarde alguns minutos e tente acessar os endpoints."
           fi
