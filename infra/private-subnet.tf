@@ -5,10 +5,10 @@ resource "aws_subnet" "private_a" {
   availability_zone       = var.az_a
 
   tags = {
-    Name = "${var.prefix}-private-subnet-a"
-    Type = "private"
-    "kubernetes.io/cluster/fastfood-eks" = "shared"
-    "kubernetes.io/role/internal-elb"    = "1"
+    Name                                               = "${var.prefix}-private-subnet-a"
+    Type                                               = "private"
+    "kubernetes.io/cluster/${var.prefix}-fastfood-eks" = "shared"
+    "kubernetes.io/role/internal-elb"                  = "1"
   }
 }
 
@@ -19,9 +19,9 @@ resource "aws_subnet" "private_b" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.prefix}-private-subnet-b"
-    Type = "private"
-    "kubernetes.io/cluster/fastfood-eks" = "shared"
-    "kubernetes.io/role/internal-elb"    = "1"
+    Name                                               = "${var.prefix}-private-subnet-b"
+    Type                                               = "private"
+    "kubernetes.io/cluster/${var.prefix}-fastfood-eks" = "shared"
+    "kubernetes.io/role/internal-elb"                  = "1"
   }
 }

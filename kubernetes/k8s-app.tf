@@ -5,24 +5,24 @@ resource "kubernetes_config_map" "app_config" {
     namespace = kubernetes_namespace.fastfood.metadata[0].name
   }
 
-    data = {
-      # Database
-      DATABASE_HOST = var.rds_endpoint
-      DATABASE_PORT = "5432"
-      DATABASE_NAME = "postgres"
-      DATABASE_USER = var.db_username
-      DATABASE_PASSWORD = var.db_password
+  data = {
+    # Database
+    DATABASE_HOST     = var.rds_endpoint
+    DATABASE_PORT     = "5432"
+    DATABASE_NAME     = "postgres"
+    DATABASE_USER     = var.db_username
+    DATABASE_PASSWORD = var.db_password
 
-      # Application
-      APPLICATION_PORT      = var.application_port
-      AUTH_TOKEN_EXPIRATION = var.auth_token_expiration
+    # Application
+    APPLICATION_PORT      = var.application_port
+    AUTH_TOKEN_EXPIRATION = var.auth_token_expiration
 
-      # Mercado Pago
-      MP_TOKEN    = var.mp_token
-      COLLECTOR_ID = var.collector_id
-      POS_ID       = var.pos_id
-      MP_BASE_URL  = var.mp_base_url
-    }
+    # Mercado Pago
+    MP_TOKEN     = var.mp_token
+    COLLECTOR_ID = var.collector_id
+    POS_ID       = var.pos_id
+    MP_BASE_URL  = var.mp_base_url
+  }
 }
 
 # Secret
@@ -33,7 +33,7 @@ resource "kubernetes_secret" "db_secret" {
   }
 
   data = {
-    DATABASE_PASS     = var.db_password
+    DATABASE_PASS = var.db_password
   }
 
   type = "Opaque"
