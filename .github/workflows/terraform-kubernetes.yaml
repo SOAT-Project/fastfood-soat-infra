@@ -56,7 +56,9 @@ jobs:
 
       - name: Read destroy configuration
         id: read-destroy-config
-        run: DESTROY="$(jq -r '.${{ inputs.environment }}' ./kubernetes/destroy_config.json)" && echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+        run: |
+          DESTROY="$(jq -r '.${{ inputs.environment }}' ./destroy_config.json)"
+          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       - name: Terraform Init
         run: cd kubernetes && terraform init -backend-config="bucket=${{ inputs.aws-statefile-s3-bucket }}" -backend-config="key=kubernetes/${{ inputs.environment }}.tfstate" -backend-config="region=${{ inputs.aws-region }}" -backend-config="dynamodb_table=${{ inputs.aws-lock-dynamodb-table }}"

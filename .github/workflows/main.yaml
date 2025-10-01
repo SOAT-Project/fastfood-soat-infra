@@ -41,7 +41,7 @@ jobs:
     needs: kubernetes
     uses: ./.github/workflows/echo-endpoints.yaml
     with:
-      environment: release
+      environment: prod
       aws-region: sa-east-1
     secrets:
       AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
