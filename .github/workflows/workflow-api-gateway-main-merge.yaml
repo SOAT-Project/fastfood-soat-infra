@@ -13,7 +13,7 @@ jobs:
 
   deploy-api-gateway:
     name: Deploy API Gateway
-    uses: ./.github/workflows/api-gateway/job-deploy-api-gateway.yaml
+    uses: ./.github/workflows/job-deploy-api-gateway.yaml
     secrets:
       aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
       aws-region: ${{ secrets.AWS_REGION }}
@@ -24,7 +24,7 @@ jobs:
     name: Notify
     needs: [deploy-api-gateway]
     if: ${{ always() }}
-    uses: ./.github/workflows/job-notify-build.yaml
+    uses: ./.github/workflows/job-notify-build-api-gateway.yaml
     with:
       build_status: ${{ needs.deploy-api-gateway.result && 'success' || 'failure' }}
     secrets:
