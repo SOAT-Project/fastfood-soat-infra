@@ -37,30 +37,58 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name ${{ inputs.environment }}-fastfood-eks --region ${{ inputs.aws-region }}
 
-      - name: Wait for LoadBalancer to be ready
+      - name: Check cluster resources
         run: |
-          echo "⏳ Aguardando LoadBalancer ser provisionado..."
-          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
-            service/fastfood-service -n fastfood --timeout=300s
-          echo "✅ LoadBalancer provisionado!"
+          echo "🔍 Verificando recursos do cluster..."
+          echo ""
+          echo "📦 Namespaces:"
+          kubectl get namespaces
+          echo ""
+          echo "🚀 Deployments no namespace fastfood:"
+          kubectl get deployments -n fastfood || echo "⚠️  Nenhum deployment encontrado"
+          echo ""
+          echo "🐳 Pods no namespace fastfood:"
+          kubectl get pods -n fastfood || echo "⚠️  Nenhum pod encontrado"
+          echo ""
+          echo "🌐 Services no namespace fastfood:"
+          kubectl get svc -n fastfood || echo "⚠️  Nenhum service encontrado"
 
-      - name: Get LoadBalancer Host
+      - name: Get LoadBalancer status
         id: lb
+        continue-on-error: true
         run: |
           echo "🔍 Buscando endereço do LoadBalancer..."
           
+          # Mostra o service completo
+          echo "📋 Detalhes do Service:"
+          kubectl describe svc fastfood-service -n fastfood || true
+          echo ""
+          
+          # Tenta aguardar por até 3 minutos
+          echo "⏳ Aguardando LoadBalancer (timeout: 180s)..."
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
+            service/fastfood-service -n fastfood --timeout=180s || echo "⚠️  Timeout ao aguardar LoadBalancer"
+          
           # Tenta pegar hostname (AWS ELB)
-          LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
           
           # Se não tiver hostname, tenta pegar IP
           if [ -z "$LB_HOST" ]; then
-            LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
           fi
           
-          echo "LB_HOST=$LB_HOST" >> $GITHUB_ENV
-          echo "📍 LoadBalancer encontrado: $LB_HOST"
+          if [ -z "$LB_HOST" ]; then
+            echo "❌ LoadBalancer ainda não foi provisionado!"
+            echo "LB_HOST=pending" >> $GITHUB_ENV
+            echo "LB_READY=false" >> $GITHUB_ENV
+          else
+            echo "LB_HOST=$LB_HOST" >> $GITHUB_ENV
+            echo "LB_READY=true" >> $GITHUB_ENV
+            echo "✅ LoadBalancer encontrado: $LB_HOST"
+          fi
 
       - name: Print Endpoints
+        if: env.LB_READY == 'true'
         run: |
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🎯 ENDPOINTS DO AMBIENTE: ${{ inputs.environment }}"
@@ -77,7 +105,27 @@ jobs:
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+      - name: LoadBalancer not ready warning
+        if: env.LB_READY != 'true'
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⚠️  LOADBALANCER NÃO PROVISIONADO"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Possíveis causas:"
+          echo "1. AWS Load Balancer Controller não está instalado no cluster"
+          echo "2. IAM roles/permissions incorretas"
+          echo "3. Subnets não tagueadas corretamente"
+          echo "4. Security groups bloqueando"
+          echo ""
+          echo "Para verificar, rode localmente:"
+          echo "  kubectl get svc -n fastfood"
+          echo "  kubectl describe svc fastfood-service -n fastfood"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
       - name: Verify endpoints accessibility
+        if: env.LB_READY == 'true'
         run: |
           echo "🔎 Verificando acessibilidade dos endpoints..."
           
