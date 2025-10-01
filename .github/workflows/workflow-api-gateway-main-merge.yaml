@@ -2,11 +2,8 @@ name: Workflow Main Merge
 
 on:
   push:
-    paths:
-      - 'api.gateway/**'
-      - '.github/workflows/workflow-api-gateway-main-merge.yaml'
-      - '.github/workflows/job-deploy-api-gateway.yaml'
-      - '.github/workflows/job-notify-build-api-gateway.yaml'
+    branches:
+      - release
 
 permissions:
   id-token: write
