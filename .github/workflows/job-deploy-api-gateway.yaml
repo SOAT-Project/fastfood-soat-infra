@@ -65,4 +65,4 @@ jobs:
       - name: Terraform Apply
         working-directory: ./api.gateway
         run: |
-          terraform apply -auto-approve -var="jwt_secret=${{ secrets.jwt-secret }}"
+          terraform apply -auto-approve
