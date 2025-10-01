@@ -1,0 +1,32 @@
+name: Workflow Main Merge
+
+on:
+  push:
+    paths:
+      - 'api.gateway/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  deploy-api-gateway:
+    name: Deploy API Gateway
+    uses: ./.github/workflows/api-gateway/job-deploy-api-gateway.yaml
+    secrets:
+      aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
+      aws-region: ${{ secrets.AWS_REGION }}
+      aws-lambda-s3-bucket: ${{ secrets.AWS_LAMBDA_S3_BUCKET }}
+      aws-statefile-s3-bucket: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      aws-lock-dynamodb-table: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+
+  notify:
+    name: Notify
+    needs: [deploy-api-gateway]
+    if: ${{ always() }}
+    uses: ./.github/workflows/job-notify-build.yaml
+    with:
+      build_status: ${{ needs.deploy-api-gateway.result && 'success' || 'failure' }}
+    secrets:
+      DISCORD_BUILD_WEBHOOK: ${{ secrets.DISCORD_BUILD_WEBHOOK }}
