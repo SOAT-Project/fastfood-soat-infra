@@ -4,7 +4,7 @@ variable "region" {
   default     = "sa-east-1"
 }
 
-variable "prefix"{
+variable "prefix" {
   type = string
 }
 

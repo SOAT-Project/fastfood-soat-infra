@@ -10,15 +10,15 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   addons = {
-    coredns                = {}
+    coredns = {}
     eks-pod-identity-agent = {
       before_compute = true
     }
-    kube-proxy             = {}
-    vpc-cni                = {
+    kube-proxy = {}
+    vpc-cni = {
       before_compute = true
     }
-    aws-ebs-csi-driver     = {}  # Adicionar esta linha
+    aws-ebs-csi-driver = {} # Adicionar esta linha
   }
 
   compute_config = {
@@ -26,11 +26,11 @@ module "eks" {
     node_pools = ["general-purpose"]
   }
 
-  vpc_id     = aws_vpc.fastfood-vpc.id
+  vpc_id = aws_vpc.fastfood-vpc.id
   subnet_ids = [
-  aws_subnet.public_a.id,
-  aws_subnet.public_b.id,
-  aws_subnet.private_a.id,
+    aws_subnet.public_a.id,
+    aws_subnet.public_b.id,
+    aws_subnet.private_a.id,
   aws_subnet.private_b.id]
 
 

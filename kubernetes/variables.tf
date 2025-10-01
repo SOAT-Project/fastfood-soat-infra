@@ -51,6 +51,6 @@ variable "mp_base_url" {
   default     = "https://api.mercadopago.com"
 }
 
-variable "prefix"{
+variable "prefix" {
   type = string
 }
