@@ -37,3 +37,11 @@ jobs:
       COLLECTOR_ID: ${{ secrets.COLLECTOR_ID }}
       POS_ID: ${{ secrets.POS_ID }}
 
+  echo:
+    needs: kubernetes
+    uses: ./.github/workflows/echo-endpoints.yaml
+    with:
+      environment: release
+      aws-region: sa-east-1
+    secrets:
+      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}

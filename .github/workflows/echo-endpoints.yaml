@@ -1,0 +1,91 @@
+name: "Echo endpoints"
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        required: true
+    secrets:
+      AWS_ASSUME_ROLE_ARN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.30.0'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ inputs.environment }}-fastfood-eks --region ${{ inputs.aws-region }}
+
+      - name: Wait for LoadBalancer to be ready
+        run: |
+          echo "⏳ Aguardando LoadBalancer ser provisionado..."
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
+            service/fastfood-service -n fastfood --timeout=300s
+          echo "✅ LoadBalancer provisionado!"
+
+      - name: Get LoadBalancer Host
+        id: lb
+        run: |
+          echo "🔍 Buscando endereço do LoadBalancer..."
+          
+          # Tenta pegar hostname (AWS ELB)
+          LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          
+          # Se não tiver hostname, tenta pegar IP
+          if [ -z "$LB_HOST" ]; then
+            LB_HOST=$(kubectl get svc fastfood-service -n fastfood -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          fi
+          
+          echo "LB_HOST=$LB_HOST" >> $GITHUB_ENV
+          echo "📍 LoadBalancer encontrado: $LB_HOST"
+
+      - name: Print Endpoints
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🎯 ENDPOINTS DO AMBIENTE: ${{ inputs.environment }}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "📚 Swagger UI:"
+          echo "   http://${{ env.LB_HOST }}/api/swagger-ui/index.html"
+          echo ""
+          echo "❤️  Health Check:"
+          echo "   http://${{ env.LB_HOST }}/api/actuator/health"
+          echo ""
+          echo "🌐 LoadBalancer:"
+          echo "   ${{ env.LB_HOST }}"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Verify endpoints accessibility
+        run: |
+          echo "🔎 Verificando acessibilidade dos endpoints..."
+          
+          # Aguarda um pouco para o LoadBalancer estar realmente pronto
+          sleep 10
+          
+          # Testa o health check
+          if curl -s -o /dev/null -w "%{http_code}" http://${{ env.LB_HOST }}/api/actuator/health | grep -q "200"; then
+            echo "✅ Health check está respondendo!"
+          else
+            echo "⚠️  Health check ainda não está respondendo (pode levar alguns minutos)"
+          fi
