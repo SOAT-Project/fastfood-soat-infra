@@ -19,3 +19,7 @@ variable "eks-alb-arn" {
 variable "eks-alb-dns" {
   type = string
 }
+
+variable "prefix" {
+  type = string
+}

@@ -16,6 +16,6 @@ resource "aws_api_gateway_stage" "fastfood_api_stage" {
 }
 
 resource "aws_api_gateway_rest_api" "fastfood_api" {
-  name        = "fastfood-soat-api"
+  name        = "${var.prefix}-fastfood-soat-api"
   description = "API Gateway para FastFood SOAT"
 }
