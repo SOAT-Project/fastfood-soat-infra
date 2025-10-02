@@ -72,10 +72,11 @@ jobs:
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
           terraform destroy \
             -var="prefix=${{ inputs.environment }}" \
+            -var="aws-region=${{ secrets.aws-region }}" \
             -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
             -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
-            -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" \
-            -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -var="middleware-lambda-arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth-lambda-arn=${{ secrets.aws-auth-lambda-arn }}" \
             -auto-approve
 
       - name: Terraform Plan
@@ -85,10 +86,11 @@ jobs:
           terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
           terraform plan \
             -var="prefix=${{ inputs.environment }}" \
+            -var="aws-region=${{ secrets.aws-region }}" \
             -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
             -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
-            -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" \
-            -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -var="middleware-lambda-arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth-lambda-arn=${{ secrets.aws-auth-lambda-arn }}" \
             -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
