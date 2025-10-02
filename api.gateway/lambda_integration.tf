@@ -23,21 +23,21 @@ resource "aws_lambda_permission" "middleware_lambda_permission" {
   source_arn    = "${aws_api_gateway_rest_api.fastfood_api.execution_arn}/*/*"
 }
 
-# /auths (POST) -> Lambda Auth
-resource "aws_api_gateway_integration" "auths_integration" {
+# /auths/client (POST) -> Lambda Auth
+resource "aws_api_gateway_integration" "auths_client_integration" {
   rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
-  resource_id             = aws_api_gateway_resource.auths.id
-  http_method             = aws_api_gateway_method.auths_post.http_method
+  resource_id             = aws_api_gateway_resource.auths_client.id
+  http_method             = aws_api_gateway_method.auths_client_post.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = "arn:aws:apigateway:${var.aws-region}:lambda:path/2015-03-31/functions/${var.auth-lambda-arn}/invocations"
 }
 
-# /clients/identify (POST) -> Lambda Auth
-resource "aws_api_gateway_integration" "clients_identify_integration" {
+# /auths/staff (POST) -> Lambda Auth
+resource "aws_api_gateway_integration" "auths_staff_integration" {
   rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
-  resource_id             = aws_api_gateway_resource.clients_identify.id
-  http_method             = aws_api_gateway_method.clients_identify_post.http_method
+  resource_id             = aws_api_gateway_resource.auths_staff.id
+  http_method             = aws_api_gateway_method.auths_staff_post.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = "arn:aws:apigateway:${var.aws-region}:lambda:path/2015-03-31/functions/${var.auth-lambda-arn}/invocations"
