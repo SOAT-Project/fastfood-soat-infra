@@ -1,7 +1,7 @@
 resource "aws_api_gateway_deployment" "fastfood_api_deploy" {
   depends_on = [
-    aws_api_gateway_integration.auths_integration,
-    aws_api_gateway_integration.clients_identify_integration,
+    aws_api_gateway_integration.auths_client_integration,
+    aws_api_gateway_integration.auths_staff_integration,
     aws_api_gateway_integration.clients_post_integration,
     aws_api_gateway_integration.root_any_protected_integration
   ]
