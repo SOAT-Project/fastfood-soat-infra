@@ -3,7 +3,7 @@ data "aws_lb" "eks_alb" {
 }
 
 resource "aws_api_gateway_vpc_link" "eks_link" {
-  name        = "eks-vpc-link"
+  name        = "${var.prefix}-eks-vpc-link"
   description = "VPC Link para EKS"
   target_arns = [data.aws_lb.eks_alb.arn]
 }
