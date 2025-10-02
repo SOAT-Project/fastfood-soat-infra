@@ -12,7 +12,7 @@ resource "aws_api_gateway_deployment" "fastfood_api_deploy" {
 resource "aws_api_gateway_stage" "fastfood_api_stage" {
   rest_api_id   = aws_api_gateway_rest_api.fastfood_api.id
   deployment_id = aws_api_gateway_deployment.fastfood_api_deploy.id
-  stage_name    = "v1"
+  stage_name    = "api"
 }
 
 resource "aws_api_gateway_rest_api" "fastfood_api" {
