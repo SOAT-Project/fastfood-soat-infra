@@ -8,17 +8,23 @@ resource "aws_api_gateway_vpc_link" "eks_link" {
   target_arns = [data.aws_lb.eks_alb.arn]
 }
 
-resource "aws_api_gateway_method" "root_any" {
-  rest_api_id   = aws_api_gateway_rest_api.fastfood_api.id
-  resource_id   = aws_api_gateway_rest_api.fastfood_api.root_resource_id
-  http_method   = "ANY"
-  authorization = "NONE"
+# /clients (POST) -> EKS (ALB), sem autenticação
+resource "aws_api_gateway_integration" "clients_post_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
+  resource_id             = aws_api_gateway_resource.clients.id
+  http_method             = aws_api_gateway_method.clients_post.http_method
+  integration_http_method = "POST"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.eks-alb-dns}/clients"
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.eks_link.id
 }
 
-resource "aws_api_gateway_integration" "root_integration" {
+# Root (ANY) -> EKS (ALB), protegido pelo authorizer
+resource "aws_api_gateway_integration" "root_any_protected_integration" {
   rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
   resource_id             = aws_api_gateway_rest_api.fastfood_api.root_resource_id
-  http_method             = aws_api_gateway_method.root_any.http_method
+  http_method             = aws_api_gateway_method.root_any_protected.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
   uri                     = "http://${var.eks-alb-dns}"

@@ -23,7 +23,7 @@ resource "aws_lambda_permission" "middleware_lambda_permission" {
   source_arn    = "${aws_api_gateway_rest_api.fastfood_api.execution_arn}/*/*"
 }
 
-# /auths (POST)
+# /auths (POST) -> Lambda Auth
 resource "aws_api_gateway_integration" "auths_integration" {
   rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
   resource_id             = aws_api_gateway_resource.auths.id
@@ -33,7 +33,7 @@ resource "aws_api_gateway_integration" "auths_integration" {
   uri                     = "arn:aws:apigateway:${var.aws-region}:lambda:path/2015-03-31/functions/${var.auth-lambda-arn}/invocations"
 }
 
-# /clients/identify (POST)
+# /clients/identify (POST) -> Lambda Auth
 resource "aws_api_gateway_integration" "clients_identify_integration" {
   rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
   resource_id             = aws_api_gateway_resource.clients_identify.id
