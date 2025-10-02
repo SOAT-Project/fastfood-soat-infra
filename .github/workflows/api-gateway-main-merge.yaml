@@ -6,7 +6,8 @@ on:
       - release
       - main
     paths:
-      - 'api-gateway-main-merge.yaml'
+      - '.github/workflows/api-gateway-main-merge.yaml'
+      - '.github/workflows/job-deploy-api-gateway.yaml'
       - 'api.gateway/**'
 
 permissions:
@@ -20,6 +21,8 @@ jobs:
     uses: ./.github/workflows/job-deploy-api-gateway.yaml
     with:
       environment: release
+    secrets:
+      aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
       aws-eks-alb-dns: ${{ secrets.AWS_EKS_ALB_DNS }}
       aws-eks-alb-arn: ${{ secrets.AWS_EKS_ALB_ARN }}
       aws-middleware-lambda-arn: ${{ secrets.AWS_MIDDLEWARE_LAMBDA_ARN }}
@@ -27,8 +30,6 @@ jobs:
       aws-region: ${{ secrets.AWS_REGION }}
       aws-statefile-s3-bucket: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
       aws-lock-dynamodb-table: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
-    secrets:
-      aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
 
   notify:
     name: Notify

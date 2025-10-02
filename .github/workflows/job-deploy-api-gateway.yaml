@@ -6,29 +6,22 @@ on:
       environment:
         required: false
         type: string
-      aws-eks-alb-dns:
-        required: true
-        type: string
-      aws-eks-alb-arn:
-        required: true
-        type: string
-      aws-middleware-lambda-arn:
-        required: true
-        type: string
-      aws-auth-lambda-arn:
-        required: true
-        type: string
-      aws-region:
-        required: true
-        type: string
-      aws-statefile-s3-bucket:
-        required: true
-        type: string
-      aws-lock-dynamodb-table:
-        required: true
-        type: string
     secrets:
       aws-assume-role-arn:
+        required: true
+      aws-eks-alb-dns:
+        required: true
+      aws-eks-alb-arn:
+        required: true
+      aws-middleware-lambda-arn:
+        required: true
+      aws-auth-lambda-arn:
+        required: true
+      aws-region:
+        required: true
+      aws-statefile-s3-bucket:
+        required: true
+      aws-lock-dynamodb-table:
         required: true
 
 jobs:
@@ -51,7 +44,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.aws-assume-role-arn }}
-          aws-region: ${{ inputs.aws-region }}
+          aws-region: ${{ secrets.aws-region }}
 
       - name: Read destroy configuration
         id: read-destroy-config
