@@ -1,7 +1,11 @@
+data "aws_lb" "eks_alb" {
+  arn = var.eks-alb-arn
+}
+
 resource "aws_api_gateway_vpc_link" "eks_link" {
   name        = "eks-vpc-link"
   description = "VPC Link para EKS"
-  target_arns = [var.eks-alb-arn]
+  target_arns = [data.aws_lb.eks_alb.arn]
 }
 
 resource "aws_api_gateway_method" "root_any" {
