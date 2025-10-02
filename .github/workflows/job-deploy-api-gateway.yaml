@@ -68,17 +68,32 @@ jobs:
       - name: Terraform Destroy
         working-directory: ./api.gateway
         if: steps.read-destroy-config.outputs.destroy == 'true'
-        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform destroy -var="prefix=${{ inputs.environment }}" -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" -auto-approve
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform destroy \
+            -var="prefix=${{ inputs.environment }}" \
+            -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
+            -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
+            -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -auto-approve
 
       - name: Terraform Plan
         working-directory: ./api.gateway
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
-          terraform plan -var="prefix=${{ inputs.environment }}" -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" -out="${{ inputs.environment }}.plan"
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform plan \
+            -var="prefix=${{ inputs.environment }}" \
+            -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
+            -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
+            -var="middleware_lambda_arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth_lambda_arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         working-directory: ./api.gateway
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
           terraform apply "${{ inputs.environment }}.plan"
