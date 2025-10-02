@@ -14,7 +14,7 @@ Este repositório contém a infraestrutura necessária para rodar a aplicação 
 
 - **/kubernetes** → Manifests Kubernetes para rodar a aplicação no cluster:
   - Namespace
-  - Deployment
+  - Deployment.
   - Service (LoadBalancer)
   - HPA
 
