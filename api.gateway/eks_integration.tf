@@ -1,7 +1,7 @@
 resource "aws_api_gateway_vpc_link" "eks_link" {
   name        = "eks-vpc-link"
   description = "VPC Link para EKS"
-  target_arns = [var.eks_alb_arn]
+  target_arns = [var.eks-alb-arn]
 }
 
 resource "aws_api_gateway_method" "root_any" {
@@ -17,7 +17,7 @@ resource "aws_api_gateway_integration" "root_integration" {
   http_method             = aws_api_gateway_method.root_any.http_method
   integration_http_method = "ANY"
   type                    = "HTTP_PROXY"
-  uri                     = "http://${var.eks_alb_dns}"
+  uri                     = "http://${var.eks-alb-dns}"
   connection_type         = "VPC_LINK"
   connection_id           = aws_api_gateway_vpc_link.eks_link.id
 }

@@ -1,4 +1,4 @@
-name: Deploy FastFoodSoatLambdaCredential Auth
+name: "Deploy API Gateway"
 
 on:
   workflow_call:
@@ -6,19 +6,38 @@ on:
       environment:
         required: false
         type: string
-    secrets:
-      aws-assume-role-arn:
+      aws-eks-alb-dns:
         required: true
+        type: string
+      aws-eks-alb-arn:
+        required: true
+        type: string
+      aws-middleware-lambda-arn:
+        required: true
+        type: string
+      aws-auth-lambda-arn:
+        required: true
+        type: string
       aws-region:
         required: true
+        type: string
       aws-statefile-s3-bucket:
         required: true
+        type: string
       aws-lock-dynamodb-table:
+        required: true
+        type: string
+    secrets:
+      aws-assume-role-arn:
         required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,13 +45,19 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.8.3
+          terraform_version: 1.13.3
 
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.aws-assume-role-arn }}
-          aws-region: ${{ secrets.aws-region }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Read destroy configuration
+        id: read-destroy-config
+        run: |
+          DESTROY="$(jq -r '.${{ inputs.environment }}' ./api.gateway/destroy_config.json)"
+          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
 
       - name: Terraform Init
         working-directory: ./api.gateway
@@ -43,26 +68,24 @@ jobs:
             -backend-config="region=${{ secrets.aws-region }}" \
             -backend-config="dynamodb_table=${{ secrets.aws-lock-dynamodb-table }}" \
 
-      - name: Terraform Format Check
-        if: github.event_name == 'pull_request'
-        working-directory: ./api.gateway
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Auto Format
-        if: github.ref == 'refs/heads/main'
-        working-directory: ./api.gateway
-        run: terraform fmt -recursive
-
       - name: Terraform Validate
         working-directory: ./api.gateway
         run: terraform validate
 
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
+      - name: Terraform Destroy
         working-directory: ./api.gateway
-        run: terraform plan -input=false
+        if: steps.read-destroy-config.outputs.destroy == 'true'
+        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform destroy -var="prefix=${{ inputs.environment }}" -auto-approve
+
+      - name: Terraform Plan
+        working-directory: ./api.gateway
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform plan -var="prefix=${{ inputs.environment }}" -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         working-directory: ./api.gateway
-        run: |
-          terraform apply -auto-approve
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform apply "${{ inputs.environment }}.plan"
