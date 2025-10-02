@@ -1,9 +1,13 @@
-name: Workflow Main Merge
+name: "API Gateway - Main/Release Deploy"
 
 on:
   push:
     branches:
       - release
+      - main
+    paths:
+      - 'api-gateway-main-merge.yaml'
+      - 'api.gateway/**'
 
 permissions:
   id-token: write
@@ -14,11 +18,17 @@ jobs:
   deploy-api-gateway:
     name: Deploy API Gateway
     uses: ./.github/workflows/job-deploy-api-gateway.yaml
-    secrets:
-      aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
+    with:
+      environment: release
+      aws-eks-alb-dns: ${{ secrets.AWS_EKS_ALB_DNS }}
+      aws-eks-alb-arn: ${{ secrets.AWS_EKS_ALB_ARN }}
+      aws-middleware-lambda-arn: ${{ secrets.AWS_MIDDLEWARE_LAMBDA_ARN }}
+      aws-auth-lambda-arn: ${{ secrets.AWS_AUTH_LAMBDA_ARN }}
       aws-region: ${{ secrets.AWS_REGION }}
       aws-statefile-s3-bucket: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
       aws-lock-dynamodb-table: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+    secrets:
+      aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
 
   notify:
     name: Notify
