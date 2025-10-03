@@ -55,14 +55,14 @@ resource "aws_api_gateway_method" "root_any_protected" {
   authorizer_id = aws_api_gateway_authorizer.jwt_authorizer.id
 }
 
-# /swagger-ui
+# /api/swagger-ui
 resource "aws_api_gateway_resource" "swagger_ui" {
   rest_api_id = aws_api_gateway_rest_api.fastfood_api.id
   parent_id   = aws_api_gateway_rest_api.fastfood_api.root_resource_id
   path_part   = "swagger-ui"
 }
 
-# /swagger-ui/index.html (GET)
+# /api/swagger-ui/index.html (GET)
 resource "aws_api_gateway_resource" "swagger_ui_index" {
   rest_api_id = aws_api_gateway_rest_api.fastfood_api.id
   parent_id   = aws_api_gateway_resource.swagger_ui.id
@@ -74,4 +74,11 @@ resource "aws_api_gateway_method" "swagger_ui_index_get" {
   resource_id   = aws_api_gateway_resource.swagger_ui_index.id
   http_method   = "GET"
   authorization = "NONE"
+}
+
+# /swagger-ui/{proxy+} para arquivos estáticos (js, css, etc)
+resource "aws_api_gateway_resource" "swagger_ui_proxy" {
+  rest_api_id = aws_api_gateway_rest_api.fastfood_api.id
+  parent_id   = aws_api_gateway_resource.swagger_ui.id
+  path_part   = "{proxy+}"
 }
