@@ -54,3 +54,17 @@ resource "aws_api_gateway_method" "root_any_protected" {
   authorization = "CUSTOM"
   authorizer_id = aws_api_gateway_authorizer.jwt_authorizer.id
 }
+
+# /swagger (public - GET)
+resource "aws_api_gateway_resource" "swagger" {
+  rest_api_id = aws_api_gateway_rest_api.fastfood_api.id
+  parent_id   = aws_api_gateway_rest_api.fastfood_api.root_resource_id
+  path_part   = "swagger-ui.html"
+}
+
+resource "aws_api_gateway_method" "swagger_get" {
+  rest_api_id   = aws_api_gateway_rest_api.fastfood_api.id
+  resource_id   = aws_api_gateway_resource.swagger.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
