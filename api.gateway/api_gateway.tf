@@ -4,6 +4,8 @@ resource "aws_api_gateway_deployment" "fastfood_api_deploy" {
     aws_api_gateway_integration.auths_staff_integration,
     aws_api_gateway_integration.clients_post_integration,
     aws_api_gateway_integration.swagger_integration,
+    aws_api_gateway_integration.swagger_ui_proxy_integration,
+    aws_api_gateway_integration.swagger_config_integration,
     aws_api_gateway_integration.root_any_protected_integration
   ]
 
