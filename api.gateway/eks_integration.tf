@@ -32,6 +32,6 @@ resource "aws_api_gateway_integration" "proxy_any_integration" {
   connection_id           = aws_api_gateway_vpc_link.eks_link.id
   request_parameters = {
     "integration.request.path.proxy" = "method.request.path.proxy"
-    "integration.request.header.Authorization" = ""
+    "integration.request.header.Authorization" = "''"
   }
 }
