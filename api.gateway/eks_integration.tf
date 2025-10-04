@@ -18,6 +18,9 @@ resource "aws_api_gateway_integration" "clients_post_integration" {
   uri                     = "http://${var.eks-alb-dns}/api/clients"
   connection_type         = "VPC_LINK"
   connection_id           = aws_api_gateway_vpc_link.eks_link.id
+  request_parameters = {
+    "integration.request.header.Authorization" = "''"
+  }
 }
 
 # /{proxy+} (ANY) -> EKS (ALB), com autenticação, mapeando para /api/{proxy} no EKS
