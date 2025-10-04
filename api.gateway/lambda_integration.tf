@@ -2,7 +2,7 @@ resource "aws_api_gateway_authorizer" "jwt_authorizer" {
   name                           = "${var.prefix}-jwt-authorizer"
   rest_api_id                    = aws_api_gateway_rest_api.fastfood_api.id
   authorizer_uri                  = "arn:aws:apigateway:${var.aws-region}:lambda:path/2015-03-31/functions/${var.middleware-lambda-arn}/invocations"
-  authorizer_result_ttl_in_seconds = 300
+  authorizer_result_ttl_in_seconds = 0
   type                           = "TOKEN"
   identity_source                = "method.request.header.Authorization"
 }
