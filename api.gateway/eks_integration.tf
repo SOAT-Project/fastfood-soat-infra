@@ -32,6 +32,19 @@ resource "aws_api_gateway_integration" "root_any_protected_integration" {
   connection_id           = aws_api_gateway_vpc_link.eks_link.id
 }
 
+# /swagger-ui -> EKS (ALB)
+
+resource "aws_api_gateway_integration" "swagger_ui_index_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.fastfood_api.id
+  resource_id             = aws_api_gateway_resource.swagger_ui_index.id
+  http_method             = aws_api_gateway_method.swagger_ui_index_get.http_method
+  integration_http_method = "GET"
+  type                    = "HTTP_PROXY"
+  uri                     = "http://${var.eks-alb-dns}/api/swagger-ui/index.html"
+  connection_type         = "VPC_LINK"
+  connection_id           = aws_api_gateway_vpc_link.eks_link.id
+}
+
 # /swagger-ui/{proxy+} para arquivos estáticos (js, css, etc)
 resource "aws_api_gateway_method" "swagger_ui_proxy_get" {
   rest_api_id   = aws_api_gateway_rest_api.fastfood_api.id
