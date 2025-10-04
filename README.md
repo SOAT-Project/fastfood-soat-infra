@@ -86,3 +86,39 @@ E acessar o Swagger UI em:
 ```
 http://<EXTERNAL-IP>/api/swagger-ui/index.html
 ```
+
+---
+
+## 🌐 API Gateway - Integração e Fluxo
+
+A infraestrutura utiliza o **API Gateway** para expor os endpoints da aplicação Fastfood, roteando requisições para o EKS (via ALB) e para Lambdas (autorização e middleware).
+
+### Ordem de Provisionamento
+
+1. **EKS e ALB**  
+   O cluster EKS e o Application Load Balancer (ALB) precisam estar provisionados antes do API Gateway, pois o Gateway faz proxy para o ALB.
+
+2. **Lambdas**  
+   As funções Lambda de autenticação e middleware devem ser criadas antes do deploy do API Gateway, pois são referenciadas como authorizer e integração.
+
+3. **API Gateway**  
+   Após EKS, ALB e Lambdas prontos, o módulo `api.gateway` pode ser aplicado normalmente.
+
+### Como funciona o roteamento
+
+- **/auths/client (POST) e /auths/staff (POST)**  
+  Roteiam para a Lambda de autenticação, responsável por gerar o JWT.
+
+- **/clients (POST)**  
+  Rota aberta, encaminha diretamente para o EKS via ALB (`/api/clients`).
+
+- **/{proxy+} (ANY)**  
+  Rota protegida por authorizer Lambda, faz proxy para o EKS via ALB (`/api/{proxy}`).
+
+### Deploy
+
+O deploy do API Gateway é feito via GitHub Actions, nos merges para os branches `main` ou `release`. O workflow executa:
+
+- Leitura de variáveis e secrets (ARNs do ALB, Lambdas, etc)
+- Provisionamento do API Gateway com Terraform
+- Notificação de status no Discord
