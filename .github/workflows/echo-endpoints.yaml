@@ -89,6 +89,19 @@ jobs:
           echo "📅 Últimos eventos do namespace:"
           kubectl get events -n fastfood --sort-by=.metadata.creationTimestamp | tail -n 15 || true
 
+          echo "📝 Logs fixos dos pods (teste rápido)..."
+          
+          for pod in fastfood-app-76d86996cb-5d7x6 fastfood-app-76d86996cb-fcd7z fastfood-app-76d86996cb-nsbmz; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "📦 Logs de $pod"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            if ! kubectl logs $pod -n fastfood --tail=50 2>/dev/null; then
+              echo "⚠️  Nenhum log encontrado (pode ter crashado rápido demais ou ainda estar iniciando)."
+            fi
+            echo ""
+          done
+
+
 
 
       - name: Get LoadBalancer status
