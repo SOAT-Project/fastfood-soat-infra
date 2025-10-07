@@ -18,7 +18,7 @@ module "eks" {
     vpc-cni = {
       before_compute = true
     }
-    aws-ebs-csi-driver = {} # Adicionar esta linha
+    aws-ebs-csi-driver = {}
   }
 
   compute_config = {
@@ -26,13 +26,11 @@ module "eks" {
     node_pools = ["general-purpose"]
   }
 
-  vpc_id = aws_vpc.fastfood-vpc.id
-  subnet_ids = [
-    aws_subnet.public_a.id,
-    aws_subnet.public_b.id,
-    aws_subnet.private_a.id,
-  aws_subnet.private_b.id]
-
+  vpc_id = data.aws_vpc.fastfood.id
+  subnet_ids = concat(
+    data.aws_subnets.public.ids,
+    data.aws_subnets.private.ids
+  )
 
   tags = {
     Project     = "fastfood"

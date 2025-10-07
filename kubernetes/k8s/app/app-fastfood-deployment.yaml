@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: fastfood
-          image: srteixeiradias/fastfood:latest
+          image: soatproject/fastfood-soat-app-totem
           ports:
             - containerPort: 8080
           envFrom:
