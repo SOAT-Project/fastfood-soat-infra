@@ -17,6 +17,8 @@ on:
         required: true
       DB_USERNAME:
         required: true
+      DB_NAME:
+        required: true
       DB_PASSWORD:
         required: true
       RDS_ENDPOINT:
@@ -65,11 +67,11 @@ jobs:
 
       - name: Terraform Destroy
         if: steps.read-destroy-config.outputs.destroy == 'true'
-        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform destroy -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -auto-approve
+        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform destroy -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_name=${{ secrets.DB_NAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -auto-approve
 
       - name: Terraform Plan
         if: steps.read-destroy-config.outputs.destroy != 'true'
-        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform plan -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -out="${{ inputs.environment }}.plan"
+        run: cd kubernetes && terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} && terraform plan -var="prefix=${{ inputs.environment }}" -var="db_username=${{ secrets.DB_USERNAME }}" -var="db_name=${{ secrets.DB_NAME }}" -var="db_password=${{ secrets.DB_PASSWORD }}" -var="rds_endpoint=${{ secrets.RDS_ENDPOINT }}" -var="mp_token=${{ secrets.MP_TOKEN }}" -var="collector_id=${{ secrets.COLLECTOR_ID }}" -var="pos_id=${{ secrets.POS_ID }}" -out="${{ inputs.environment }}.plan"
 
       - name: Terraform Apply
         if: steps.read-destroy-config.outputs.destroy != 'true'

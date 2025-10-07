@@ -10,6 +10,10 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "db_name" {
+  type        = string
+}
+
 variable "rds_endpoint" {
   description = "RDS endpoint for the database"
   type        = string

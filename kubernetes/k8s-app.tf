@@ -9,7 +9,7 @@ resource "kubernetes_config_map" "app_config" {
     # Database
     DATABASE_HOST     = var.rds_endpoint
     DATABASE_PORT     = "5432"
-    DATABASE_NAME     = "postgres"
+    DATABASE_NAME     = var.db_name
     DATABASE_USER     = var.db_username
     DATABASE_PASSWORD = var.db_password
 
