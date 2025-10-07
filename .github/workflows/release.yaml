@@ -50,17 +50,17 @@ jobs:
       COLLECTOR_ID: ${{ secrets.COLLECTOR_ID }}
       POS_ID: ${{ secrets.POS_ID }}
 
-  # destroy-infra:
-  #   needs: destroy-kubernetes
-  #   if: needs.check-destroy.outputs.should_destroy == 'true'
-  #   uses: ./.github/workflows/terraform-infra.yaml
-  #   with:
-  #     environment: release
-  #   secrets:
-  #     AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
-  #     AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
-  #     AWS_REGION: ${{ secrets.AWS_REGION }}
-  #     AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+  destroy-infra:
+    needs: destroy-kubernetes
+    if: needs.check-destroy.outputs.should_destroy == 'true'
+    uses: ./.github/workflows/terraform-infra.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
 
   # DEPLOY FLOW - ordem normal: infra -> kubernetes -> echo
   deploy-infra:
