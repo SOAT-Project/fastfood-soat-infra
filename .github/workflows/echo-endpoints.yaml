@@ -6,11 +6,10 @@ on:
       environment:
         type: string
         required: true
-      aws-region:
-        type: string
-        required: true
     secrets:
       AWS_ASSUME_ROLE_ARN:
+        required: true
+      AWS_REGION:
         required: true
 
 jobs:
@@ -30,12 +29,12 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
-          aws-region: ${{ inputs.aws-region }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --name ${{ inputs.environment }}-fastfood-eks --region ${{ inputs.aws-region }}
+        run: aws eks update-kubeconfig --name ${{ inputs.environment }}-fastfood-eks --region ${{ secrets.AWS_REGION }}
 
       - name: Check cluster resources
         run: |
