@@ -37,11 +37,11 @@ jobs:
     uses: ./.github/workflows/terraform-kubernetes.yaml
     with:
       environment: release
-      aws-region: sa-east-1
-      aws-statefile-s3-bucket: "soat-project-sa-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "soat-project-sa-east-1-terraform-lock"
     secrets:
-      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
@@ -55,11 +55,11 @@ jobs:
     uses: ./.github/workflows/terraform-infra.yaml
     with:
       environment: release
-      aws-region: sa-east-1
-      aws-statefile-s3-bucket: "soat-project-sa-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "soat-project-sa-east-1-terraform-lock"
     secrets:
-      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
 
   # DEPLOY FLOW - ordem normal: infra -> kubernetes -> echo
   deploy-infra:
@@ -68,11 +68,11 @@ jobs:
     uses: ./.github/workflows/terraform-infra.yaml
     with:
       environment: release
-      aws-region: sa-east-1
-      aws-statefile-s3-bucket: "soat-project-sa-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "soat-project-sa-east-1-terraform-lock"
     secrets:
-      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
 
   deploy-kubernetes:
     needs: deploy-infra
@@ -80,11 +80,11 @@ jobs:
     uses: ./.github/workflows/terraform-kubernetes.yaml
     with:
       environment: release
-      aws-region: sa-east-1
-      aws-statefile-s3-bucket: "soat-project-sa-east-1-terraform-statefile"
-      aws-lock-dynamodb-table: "soat-project-sa-east-1-terraform-lock"
     secrets:
-      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
@@ -98,6 +98,6 @@ jobs:
     uses: ./.github/workflows/echo-endpoints.yaml
     with:
       environment: release
-      aws-region: sa-east-1
     secrets:
-      AWS_ASSUME_ROLE_ARN: ${{ secrets.AWS_ASSUME_ROLE_ARN }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
