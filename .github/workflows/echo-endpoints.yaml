@@ -52,6 +52,42 @@ jobs:
           echo "🌐 Services no namespace fastfood:"
           kubectl get svc -n fastfood || echo "⚠️  Nenhum service encontrado"
 
+      - name: Debug pod failures
+        if: always()
+        run: |
+          echo "🐛 Investigando falhas nos pods..."
+          echo ""
+          echo "⏳ Aguardando pods iniciarem (30s)..."
+          sleep 30
+          echo ""
+          echo "🔍 Listando pods no namespace fastfood:"
+          kubectl get pods -n fastfood -o wide || true
+          echo ""
+
+          echo "📋 Descrição dos pods problemáticos:"
+          for pod in $(kubectl get pods -n fastfood --no-headers -o custom-columns=":metadata.name,:status.phase" | grep -v Running | awk '{print $1}'); do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "📦 $pod"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            kubectl describe pod $pod -n fastfood || true
+            echo ""
+          done
+
+          echo "🧾 Logs dos pods com falha (últimas 50 linhas):"
+          for pod in $(kubectl get pods -n fastfood --no-headers -o custom-columns=":metadata.name,:status.phase" | grep -v Running | awk '{print $1}'); do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "📦 Logs de $pod"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            if ! kubectl logs $pod -n fastfood --tail=50 2>/dev/null; then
+              echo "⚠️ Nenhum log encontrado (pode ter crashado rápido demais ou ainda estar iniciando)."
+            fi
+            echo ""
+          done
+
+          echo "📅 Últimos eventos do namespace:"
+          kubectl get events -n fastfood --sort-by=.metadata.creationTimestamp | tail -n 15 || true
+
+
       - name: Get LoadBalancer status
         id: lb
         continue-on-error: true
