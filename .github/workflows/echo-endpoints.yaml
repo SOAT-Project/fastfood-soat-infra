@@ -64,7 +64,7 @@ jobs:
           kubectl get pods -n fastfood -o wide || true
           echo ""
 
-          PODS=("fastfood-app-76d86996cb-gl67q" "fastfood-app-76d86996cb-l8dp9" "fastfood-app-76d86996cb-q6rp5")
+          PODS=("fastfood-app-76d86996cb-56dsh" "fastfood-app-76d86996cb-879jl" "fastfood-app-76d86996cb-bthr9")
 
           echo "📋 Descrição dos pods problemáticos:"
           for pod in "${PODS[@]}"; do
