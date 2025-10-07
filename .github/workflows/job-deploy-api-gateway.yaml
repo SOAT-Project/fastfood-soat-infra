@@ -1,0 +1,101 @@
+name: "Deploy API Gateway"
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: false
+        type: string
+    secrets:
+      aws-assume-role-arn:
+        required: true
+      aws-eks-alb-dns:
+        required: true
+      aws-eks-alb-arn:
+        required: true
+      aws-middleware-lambda-arn:
+        required: true
+      aws-auth-lambda-arn:
+        required: true
+      aws-region:
+        required: true
+      aws-statefile-s3-bucket:
+        required: true
+      aws-lock-dynamodb-table:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.aws-assume-role-arn }}
+          aws-region: ${{ secrets.aws-region }}
+
+      - name: Read destroy configuration
+        id: read-destroy-config
+        run: |
+          DESTROY="$(jq -r '.${{ inputs.environment }}' ./api.gateway/destroy_config.json)"
+          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+
+      - name: Terraform Init
+        working-directory: ./api.gateway
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.aws-statefile-s3-bucket }}" \
+            -backend-config="key=${{ github.event.repository.name }}-api-gateway" \
+            -backend-config="region=${{ secrets.aws-region }}" \
+            -backend-config="dynamodb_table=${{ secrets.aws-lock-dynamodb-table }}" \
+
+      - name: Terraform Validate
+        working-directory: ./api.gateway
+        run: terraform validate
+
+      - name: Terraform Destroy
+        working-directory: ./api.gateway
+        if: steps.read-destroy-config.outputs.destroy == 'true'
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform destroy \
+            -var="prefix=${{ inputs.environment }}" \
+            -var="aws-region=${{ secrets.aws-region }}" \
+            -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
+            -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
+            -var="middleware-lambda-arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth-lambda-arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -auto-approve
+
+      - name: Terraform Plan
+        working-directory: ./api.gateway
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform plan \
+            -var="prefix=${{ inputs.environment }}" \
+            -var="aws-region=${{ secrets.aws-region }}" \
+            -var="eks-alb-dns=${{ secrets.aws-eks-alb-dns }}" \
+            -var="eks-alb-arn=${{ secrets.aws-eks-alb-arn }}" \
+            -var="middleware-lambda-arn=${{ secrets.aws-middleware-lambda-arn }}" \
+            -var="auth-lambda-arn=${{ secrets.aws-auth-lambda-arn }}" \
+            -out="${{ inputs.environment }}.plan"
+
+      - name: Terraform Apply
+        working-directory: ./api.gateway
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: |
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform apply "${{ inputs.environment }}.plan"

@@ -1,0 +1,75 @@
+name: "Terraform Workflow"
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+    secrets:
+      AWS_GITHUB_ACTIONS_ROLE_ARN:
+        required: true
+      AWS_STATEFILE_S3_BUCKET:
+        required: true
+      AWS_LOCK_DYNAMODB_TABLE:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Read destroy configuration
+        id: read-destroy-config
+        run: |
+          DESTROY="$(jq -r '.${{ inputs.environment }}' ./destroy_config.json)"
+          echo "destroy=$(echo $DESTROY)" >> $GITHUB_OUTPUT
+
+      - name: Terraform Init
+        run: |
+          cd infra && terraform init \
+            -backend-config="bucket=${{ secrets.AWS_STATEFILE_S3_BUCKET }}" \
+            -backend-config="key=infra/${{ github.event.repository.name }}" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.AWS_LOCK_DYNAMODB_TABLE}}"
+
+      - name: Terraform Validate
+        run: cd infra && terraform validate
+
+      - name: Terraform Destroy
+        if: steps.read-destroy-config.outputs.destroy == 'true'
+        run: cd infra &&
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform destroy -var="prefix=${{ inputs.environment }}" -auto-approve
+
+      - name: Terraform Plan
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: cd infra &&
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform plan -var="prefix=${{ inputs.environment }}" -out="${{ inputs.environment }}.plan"
+
+      - name: Terraform Apply
+        if: steps.read-destroy-config.outputs.destroy != 'true'
+        run: cd infra &&
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }} &&
+          terraform apply "${{ inputs.environment }}.plan"

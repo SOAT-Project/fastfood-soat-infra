@@ -1,0 +1,105 @@
+name: "RELEASE DEPLOY"
+
+on:
+  push:
+    branches:
+      - release
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  check-destroy:
+    runs-on: ubuntu-latest
+    outputs:
+      should_destroy: ${{ steps.check.outputs.destroy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check destroy config
+        id: check
+        run: |
+          DESTROY="$(jq -r '.release' ./destroy_config.json)"
+          echo "destroy=$DESTROY" >> $GITHUB_OUTPUT
+          
+          if [ "$DESTROY" = "true" ]; then
+            echo "MODO: DESTROY"
+          else
+            echo "MODO: DEPLOY"
+          fi
+
+  # DESTROY FLOW - ordem invertida: kubernetes -> infra
+  destroy-kubernetes:
+    needs: check-destroy
+    if: needs.check-destroy.outputs.should_destroy == 'true'
+    uses: ./.github/workflows/terraform-kubernetes.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+      MP_TOKEN: ${{ secrets.MP_TOKEN }}
+      COLLECTOR_ID: ${{ secrets.COLLECTOR_ID }}
+      POS_ID: ${{ secrets.POS_ID }}
+
+  destroy-infra:
+    needs: destroy-kubernetes
+    if: needs.check-destroy.outputs.should_destroy == 'true'
+    uses: ./.github/workflows/terraform-infra.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+  # DEPLOY FLOW - ordem normal: infra -> kubernetes -> echo
+  deploy-infra:
+    needs: check-destroy
+    if: needs.check-destroy.outputs.should_destroy != 'true'
+    uses: ./.github/workflows/terraform-infra.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+
+  deploy-kubernetes:
+    needs: deploy-infra
+    if: needs.check-destroy.outputs.should_destroy != 'true'
+    uses: ./.github/workflows/terraform-kubernetes.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_STATEFILE_S3_BUCKET: ${{ secrets.AWS_STATEFILE_S3_BUCKET }}
+      AWS_LOCK_DYNAMODB_TABLE: ${{ secrets.AWS_LOCK_DYNAMODB_TABLE }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+      MP_TOKEN: ${{ secrets.MP_TOKEN }}
+      COLLECTOR_ID: ${{ secrets.COLLECTOR_ID }}
+      POS_ID: ${{ secrets.POS_ID }}
+
+  echo:
+    needs: deploy-kubernetes
+    if: needs.check-destroy.outputs.should_destroy != 'true'
+    uses: ./.github/workflows/echo-endpoints.yaml
+    with:
+      environment: release
+    secrets:
+      AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}

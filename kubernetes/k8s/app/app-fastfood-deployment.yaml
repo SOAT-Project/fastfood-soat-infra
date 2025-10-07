@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastfood-app
+  namespace: fastfood 
+spec:
+  selector:
+    matchLabels:
+      app: fastfood
+  template:
+    metadata:
+      labels:
+        app: fastfood
+    spec:
+      containers:
+        - name: fastfood
+          image: soatproject/fastfood-soat-app-totem:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: db-secret
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            failureThreshold: 3
