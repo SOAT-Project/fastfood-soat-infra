@@ -1,4 +1,4 @@
 {
-  "release": false,
-  "prod": false
+  "release": true,
+  "prod": true
 }
