@@ -20,7 +20,7 @@ jobs:
     name: Deploy API Gateway
     uses: ./.github/workflows/job-deploy-api-gateway.yaml
     with:
-      environment: release
+      environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'release' }}
     secrets:
       aws-assume-role-arn: ${{ secrets.AWS_API_GATEWAY_ROLE_TO_ASSUME }}
       aws-eks-alb-dns: ${{ secrets.AWS_EKS_ALB_DNS }}
