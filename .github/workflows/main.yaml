@@ -43,6 +43,7 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_NAME: ${{ secrets.DB_NAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
       MP_TOKEN: ${{ secrets.MP_TOKEN }}
@@ -86,6 +87,7 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_GITHUB_ACTIONS_ROLE_ARN: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE_ARN }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_NAME: ${{ secrets.DB_NAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
       MP_TOKEN: ${{ secrets.MP_TOKEN }}
