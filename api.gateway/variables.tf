@@ -20,6 +20,7 @@ variable "eks-alb-dns" {
   type = string
 }
 
+# Prefixo para nomes dos recursos
 variable "prefix" {
   type = string
 }
