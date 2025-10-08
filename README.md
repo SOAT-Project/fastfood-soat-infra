@@ -1,91 +1,65 @@
-# Fastfood - Infraestrutura 🍔
+# Fastfood EKS Infrastructure 🍔
 
-Este repositório contém a infraestrutura necessária para rodar a aplicação **Fastfood** no **Amazon EKS**.
+Este repositório provisiona e gerencia toda a infraestrutura Kubernetes (EKS) e seus recursos associados na AWS utilizando **Terraform** e **GitHub Actions**.
 
 ---
 
 ## 📂 Estrutura do projeto
 
-- **/infra** → Provisionamento da infraestrutura base com **Terraform**:
-  - VPC com subnets públicas e privadas
-  - Internet Gateway (IGW) para acesso externo
-  - NAT Gateway e route tables para comunicação das subnets privadas
-  - Cluster EKS com addons gerenciados
-
-- **/kubernetes** → Manifests Kubernetes para rodar a aplicação no cluster:
-  - Namespace
-  - Deployment.
-  - Service (LoadBalancer)
-  - HPA
-
-> ⚠️ O **RDS PostgreSQL** é provisionado em outro repositório e deve estar disponível antes do deploy da aplicação.
-
----
-
-## 🚀 Passo a passo
-
-### 1. Subir infraestrutura base
-
-No diretório `/infra`:
-
-```bash
-cd infra
-terraform init
-terraform apply
-```
-
-Isso provisiona toda a rede (VPC, subnets, IGW, NAT, rotas) e o cluster EKS.
-
-### 2. Subir banco de dados (RDS)
-
-O RDS está em outro repositório. Certifique-se de:
-* Criar o banco no mesmo VPC/subnets privadas.
-* Atualizar as variáveis de conexão da aplicação.
-
-* ### 3. Configurar acesso ao EKS
-
-Após a criação do cluster, rode o comando abaixo para configurar o `kubectl`:
-
-```bash
-aws eks --region sa-east-1 update-kubeconfig --name fastfood-eks
-```
+- **/infra** → Cluster EKS (Terraform)
+- **/kubernetes** → Recursos Kubernetes (Deployments, Services, HPA, etc.)
 
 
-### 4. Deploy no Kubernetes
+## ⚙️ Pré-requisitos
 
-Após a infraestrutura e o RDS estarem prontos, aplicar os manifests no cluster:
+Antes de aplicar o projeto, é necessário que os seguintes recursos **já existam**:
 
-```bash
-cd kubernetes
-terraform init
-terraform apply
-```
-
-Isso cria o namespace, deployment, service (LoadBalancer) e o HPA.
+- 🧩 **Rede (VPC, Subnets, IGW, NAT, Route Tables)** – disponível no repositório do *database*  
+- 🗄️ **RDS** configurado e acessível  
+- 🪣 **S3 Bucket** para backend do Terraform  
+- 📚 **DynamoDB Table** para controle de *lock* do Terraform  
 
 ---
 
-## ✅ Resultado esperado
+## 🧭 Fluxo de Deploy
 
-* Aplicação **Fastfood** rodando no EKS, exposta via LoadBalancer.
-* Escalabilidade automática configurada pelo HPA.
-* Banco de dados externo no RDS integrado à aplicação.
+O processo é dividido em duas etapas principais:
+
+1. **Infraestrutura (EKS)** – aplica o módulo localizado em `/infra`  
+2. **Recursos Kubernetes** – aplica os manifests de `/kubernetes` no eks já provisionado  
+   - Deploy da aplicação  
+   - LoadBalancer  
+   - ConfigMap e Secret  
+   - HPA  
+   - Metrics Server  
 
 ---
 
-## 🔍 Como acessar
+## ⚡ CI/CD via GitHub Actions
 
-Obter o endpoint público do LoadBalancer:
+Os pipelines automatizados executam **deploy** ou **destroy** separados por ambiente (`prod` ou `release`).
 
-```bash
-kubectl get svc -n fastfood
-```
+### 🔁 Fluxo de Deploy
 
-E acessar o Swagger UI em:
+1. Lê as **secrets** do ambiente  
+2. Verifica o tipo de execução via `destroy_config.json`  
+3. Se for **deploy**:
+   - Aplica o módulo `/infra`  
+   - Aplica os recursos `/kubernetes`  
+   - Executa um *job* final para listar todos os recursos do cluster via `kubectl`
 
-```
-http://<EXTERNAL-IP>/api/swagger-ui/index.html
-```
+### 💣 Fluxo de Destroy
+
+1. Destroi todos os recursos do diretório `/kubernetes`  
+2. Destroi o módulo `/infra`
+
+---
+
+## 🧠 Observações
+
+- As actions separam o fluxo por **ambiente (prod/release)**  
+- Toda a configuração é automatizada via Terraform e GitHub Actions  
+- É necessário garantir que o backend (S3 + DynamoDB) esteja configurado antes de qualquer execução
 
 ---
 
